@@ -168,14 +168,26 @@ static void *worker(void *arg)
     return NULL;
 }
 
+static void *idle(void *arg)
+{
+    return arg;
+}
+
 int main(void)
 {
     ca_stats (*stats)(void) = (ca_stats (*)(void))dlsym(RTLD_DEFAULT, "ca_stats_get");
     printf("stress: %d threads x %d rounds (%s)\n", THREADS, ROUNDS,
            stats ? "clusteralloc" : "system malloc");
+
+    /* glibc mallocs a little per cached thread stack. Run a throwaway set of
+     * threads first so that is in the "before" snapshot. */
+    pthread_t threads[THREADS];
+    for (int i = 0; i < THREADS; i++)
+        pthread_create(&threads[i], NULL, idle, NULL);
+    for (int i = 0; i < THREADS; i++)
+        pthread_join(threads[i], NULL);
     ca_stats before = stats ? stats() : (ca_stats){0};
 
-    pthread_t threads[THREADS];
     pthread_barrier_init(&all_sent, NULL, THREADS);
     for (int i = 0; i < THREADS; i++) {
         pthread_mutex_init(&boxes[i].lock, NULL);
