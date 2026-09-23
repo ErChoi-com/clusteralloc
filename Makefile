@@ -1,4 +1,5 @@
 #   make test     stress test + real programs under LD_PRELOAD
+#   make bench    pipeline latency, system malloc vs clusteralloc
 
 CC      ?= gcc
 CFLAGS  := -O2 -g -std=gnu11 -Wall -Wextra
@@ -6,9 +7,9 @@ BUILD   := build
 LIB     := $(BUILD)/libclusteralloc.so
 PRELOAD := LD_PRELOAD=$(LIB)
 
-.PHONY: all test clean
+.PHONY: all test bench clean
 
-all: $(LIB) $(BUILD)/stress
+all: $(LIB) $(BUILD)/stress $(BUILD)/pipeline
 
 $(BUILD):
 	mkdir -p $@
@@ -21,6 +22,9 @@ $(LIB): alloc/alloc.c alloc/alloc.h libc/malloc.c | $(BUILD)
 $(BUILD)/stress: libc/stress.c alloc/alloc.h | $(BUILD)
 	$(CC) $(CFLAGS) -pthread -o $@ $<
 
+$(BUILD)/pipeline: bench/linux.c bench/pipeline.c bench/pipeline.h | $(BUILD)
+	$(CC) $(CFLAGS) -pthread -o $@ bench/linux.c bench/pipeline.c
+
 test: $(LIB) $(BUILD)/stress
 	$(BUILD)/stress
 	$(PRELOAD) $(BUILD)/stress
@@ -28,6 +32,10 @@ test: $(LIB) $(BUILD)/stress
 	$(PRELOAD) ls -lR /usr/include > /dev/null
 	seq 1 300000 | $(PRELOAD) sort -R | $(PRELOAD) sort -n | tail -1
 	CLUSTERALLOC_STATS=1 $(PRELOAD) $(CC) -O2 -c alloc/alloc.c -o /dev/null
+
+bench: $(LIB) $(BUILD)/pipeline
+	$(BUILD)/pipeline
+	$(PRELOAD) $(BUILD)/pipeline
 
 clean:
 	rm -rf $(BUILD)
