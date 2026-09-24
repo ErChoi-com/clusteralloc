@@ -37,10 +37,10 @@
 #define SPAN_MAGIC   0xC1A5A11Cu
 
 /* Inbox drain: every DRAIN_EVERY allocations, file at most DRAIN_BATCH blocks.
- * Keeps up with a consumer freeing two blocks per allocation while capping
- * the work any one call does. */
-#define DRAIN_EVERY  32
-#define DRAIN_BATCH  64
+ * On the pipeline bench 32/64 gave a ~1.2 us drain in 3% of calls (p99);
+ * 4/8 gives ~270 ns with the same median. */
+#define DRAIN_EVERY  4
+#define DRAIN_BATCH  8
 
 enum { SPAN_SMALL = 1, SPAN_LARGE = 2 };
 
