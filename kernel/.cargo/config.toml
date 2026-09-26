@@ -1,0 +1,7 @@
+[build]
+target = "x86_64-unknown-none"
+
+[target.x86_64-unknown-none]
+# The image runs where it is linked (1 MiB, identity mapped), so there is
+# nothing to relocate. A PIE would need a loader to apply its relocations.
+rustflags = ["-C", "relocation-model=static"]
