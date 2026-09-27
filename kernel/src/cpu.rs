@@ -1,6 +1,7 @@
 //! The handful of privileged instructions the lab needs.
 
 use core::arch::asm;
+use core::cell::UnsafeCell;
 
 pub unsafe fn outb(port: u16, value: u8) {
     unsafe { asm!("out dx, al", in("dx") port, in("al") value, options(nomem, nostack, preserves_flags)) }
@@ -43,6 +44,23 @@ pub fn without_interrupts<R>(f: impl FnOnce() -> R) -> R {
         enable_interrupts();
     }
     result
+}
+
+/// Mutable global state for a single-CPU kernel: every access runs with
+/// interrupts off, so nothing can observe it half-updated. Not reentrant;
+/// `f` must not reach the same cell again.
+pub struct IrqCell<T>(UnsafeCell<T>);
+
+unsafe impl<T: Send> Sync for IrqCell<T> {}
+
+impl<T> IrqCell<T> {
+    pub const fn new(value: T) -> Self {
+        Self(UnsafeCell::new(value))
+    }
+
+    pub fn with<R>(&self, f: impl FnOnce(&mut T) -> R) -> R {
+        without_interrupts(|| f(unsafe { &mut *self.0.get() }))
+    }
 }
 
 const DEBUG_EXIT_PORT: u16 = 0xf4;
