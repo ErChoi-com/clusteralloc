@@ -41,9 +41,11 @@ test: $(LIB) $(BUILD)/stress
 	seq 1 300000 | $(PRELOAD) sort -R | $(PRELOAD) sort -n | tail -1
 	CLUSTERALLOC_STATS=1 $(PRELOAD) $(CC) -O2 -c alloc/alloc.c -o /dev/null
 
+BENCH_MESSAGES ?= 2000000
+
 bench: $(LIB) $(BUILD)/pipeline
-	$(BUILD)/pipeline
-	$(PRELOAD) $(BUILD)/pipeline
+	$(BUILD)/pipeline $(BENCH_MESSAGES)
+	$(PRELOAD) $(BUILD)/pipeline $(BENCH_MESSAGES)
 
 kernel: | $(BUILD)
 	cd kernel && cargo build --release

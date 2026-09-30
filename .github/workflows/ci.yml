@@ -1,0 +1,23 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make build/libclusteralloc.so build/stress build/pipeline
+      - run: make test
+      - run: make bench BENCH_MESSAGES=200000
+
+  kernel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y qemu-system-x86
+      - run: rustup target add x86_64-unknown-none && rustup component add clippy rustfmt
+      - run: cd kernel && cargo fmt --check && cargo clippy --release -- -D warnings
+      - run: make run
