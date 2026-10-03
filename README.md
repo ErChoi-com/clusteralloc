@@ -5,7 +5,7 @@
 A small memory allocator for producer/consumer pipelines, where one core
 allocates a message and a different core frees it. Think market data feed
 handlers or packet processing: the cross-thread free is the common case, not
-the exception, and most general purpose mallocs aren't built around that.
+the exception, and most general-purpose mallocs aren't built around that.
 
 The allocator core is ~500 lines of freestanding C. It's used in two places:
 
@@ -67,7 +67,7 @@ Latency in ns:
 | glibc free          | 128 | 3282 | 13128 | 31180  |        |
 | clusteralloc free   |  61 |  122 |   186 |  2359  |        |
 
-Run-to-run noise is maybe 10-20% on the tail columns. The kernel (`make run`)
+Run-to-run noise is around 10-20% on the tail columns. The kernel (`make run`)
 runs the same benchmark on one CPU, once with interrupts off and once with a
 1 kHz timer. Typical output:
 
