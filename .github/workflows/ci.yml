@@ -26,5 +26,5 @@ jobs:
         run: rustup target add x86_64-unknown-none && rustup component add clippy rustfmt
       - name: fmt and clippy
         run: cd kernel && cargo fmt --check && cargo clippy --release -- -D warnings
-      - name: Boot in QMEU
+      - name: Boot in QEMU
         run: make run
