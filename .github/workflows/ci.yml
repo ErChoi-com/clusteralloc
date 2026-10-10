@@ -9,15 +9,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - run: make build/libclusteralloc.so build/stress build/pipeline
-      - run: make test
-      - run: make bench BENCH_MESSAGES=200000
+      - name: Build
+        run: make build/libclusteralloc.so build/stress build/pipeline
+      - name: Stress test
+        run: make test
+      - name: Pipeline benchmark (short)
+        run: make bench BENCH_MESSAGES=200000
 
   kernel:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - run: sudo apt-get update && sudo apt-get install -y qemu-system-x86
-      - run: rustup target add x86_64-unknown-none && rustup component add clippy rustfmt
-      - run: cd kernel && cargo fmt --check && cargo clippy --release -- -D warnings
-      - run: make run
+      - name: Install QEMU
+        run: sudo apt-get update && sudo apt-get install -y qemu-system-x86
+      - name: Rust target and tools
+        run: rustup target add x86_64-unknown-none && rustup component add clippy rustfmt
+      - name: fmt and clippy
+        run: cd kernel && cargo fmt --check && cargo clippy --release -- -D warnings
+      - name: Boot in QMEU
+        run: make run
